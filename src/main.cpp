@@ -8,8 +8,6 @@
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
-#include "spline.h"
-#include "utils.h"
 #include "VehicleController.h"
 
 using namespace std;
@@ -69,8 +67,9 @@ int main()
   	map_waypoints_dy.push_back(d_y);
   }
 
+  // init vehicle controller
   VehicleController my_vehicle_controller = VehicleController::VehicleController();
-  
+
   h.onMessage([&my_vehicle_controller,&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -109,10 +108,12 @@ int main()
             vector<double> next_x_vals;
             vector<double> next_y_vals;
 
+            // feed new data into controller
             my_vehicle_controller.UpdateState(previous_path_x, previous_path_y,
               end_path_s, end_path_d, car_x, car_y, car_yaw, car_s, sensor_fusion,
               map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
+            // compute new trajectory points 
             my_vehicle_controller.ComputeNewTrajectory(next_x_vals,next_y_vals);
 
           	msgJson["next_x"] = next_x_vals;
