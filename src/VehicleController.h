@@ -37,6 +37,10 @@ public:
 
 private:
 
+  void DetermineOptimalLane();
+
+private:
+
   // current target velocity
   double target_vel_;
 
@@ -67,6 +71,8 @@ private:
   static const double TIME_STEP_SIZE;
   static const double TRAJECTORY_LENGTH;
   static const double SAFETY_DISTANCE;
+  static const double SAFETY_DISTANCE_BACK;
+
 
 };
 
