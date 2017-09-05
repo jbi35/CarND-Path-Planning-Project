@@ -5,17 +5,14 @@
 #include <vector>
 # include "EgoTrajectoryGenerator.h"
 using namespace std;
-
 //==============================================================================
-// forward declaration
-//class EgoTrajectoryGenerator;
+
 
 class VehicleController
 {
 public:
   VehicleController();
 
-  // feed data to controller
   void UpdateState(
     vector<double> previous_path_x,
     vector<double> previous_path_y,
@@ -47,9 +44,10 @@ private:
   // lane to drive in
   int target_lane_;
 
-  //
+  // trajectory generator for ego vehicle
   EgoTrajectoryGenerator trajectory_generator_;
 
+  // state data
   vector<double> previous_path_x_;
   vector<double> previous_path_y_;
   double end_path_s_;
@@ -63,19 +61,16 @@ private:
   vector <double> map_waypoints_x_;
   vector <double> map_waypoints_y_;
 
-
-  // declare some constants
+  // declare all constants defining the vehicle behaviour here
   static const double SPEED_LIMIT;
-  static const double OVERTAKE_THRESHOLD;
   static const int    NUM_TRAJECTORY_POINTS;
   static const double TIME_STEP_SIZE;
   static const double TRAJECTORY_LENGTH;
   static const double SAFETY_DISTANCE;
+  static const double EMERGENCY_BREAK_THRESHOLD;
   static const double SAFETY_DISTANCE_BACK;
 
-
 };
-
 //==============================================================================
 #endif // VEHICLECONTROLLER_H
 //==============================================================================

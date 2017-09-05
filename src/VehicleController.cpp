@@ -1,23 +1,26 @@
-#include<math.h>
+#include <math.h>
 #include "VehicleController.h"
 #include "EgoTrajectoryGenerator.h"
 #include <iostream>
 
 // define some constants
-const double VehicleController::SPEED_LIMIT           = 49.5;
-const double VehicleController::OVERTAKE_THRESHOLD    = 45.0;
-const int    VehicleController::NUM_TRAJECTORY_POINTS = 50;
-const double VehicleController::TIME_STEP_SIZE        = 0.02;
-const double VehicleController::TRAJECTORY_LENGTH     = 50.0;
-const double VehicleController::SAFETY_DISTANCE       = 50.0;
-const double VehicleController::SAFETY_DISTANCE_BACK  = -10.0;
+const double VehicleController::SPEED_LIMIT               = 49.5;
+const double VehicleController::OVERTAKE_THRESHOLD        = 45.0;
+const int    VehicleController::NUM_TRAJECTORY_POINTS     = 50;
+const double VehicleController::TIME_STEP_SIZE            = 0.02;
+const double VehicleController::TRAJECTORY_LENGTH         = 50.0;
+const double VehicleController::SAFETY_DISTANCE           = 50.0;
+const double VehicleController::EMERGENCY_BREAK_THRESHOLD = 30.0;
+const double VehicleController::SAFETY_DISTANCE_BACK      = -10.0;
 
+//==============================================================================
 VehicleController::VehicleController()
 :trajectory_generator_(NUM_TRAJECTORY_POINTS,TIME_STEP_SIZE,TRAJECTORY_LENGTH),
 target_vel_(0.0), // simulator starts with zero velocity
 target_lane_(1) // simulator always start with lane 1
 {}
-// feed data to controller
+
+//==============================================================================
 void VehicleController::UpdateState(
   vector<double> previous_path_x,
   vector<double> previous_path_y,
@@ -46,56 +49,11 @@ void VehicleController::UpdateState(
     map_waypoints_y_ = map_waypoints_y;
   }
 
-  // get new trajectory
+//==============================================================================
 void VehicleController::ComputeNewTrajectory(
   vector<double> &ego_trajectory_x,
   vector<double> &ego_trajectory_y)
   {
-    int previous_size = previous_path_x_.size();
-    //
-    // // // TODO do really want this
-    // if(previous_size > 0)
-    // {
-    //   cout << "car_s_ " << car_s_ << endl;
-    //   cout << "end_path_s_ " << end_path_s_ << endl;
-    //   car_s_ = end_path_s_;
-    // }
-    // //
-    // // check for obstacles
-    // bool too_close = false;
-    //
-    // // go through sensor fusion data
-    // for(int i = 0; i< sensor_fusion_data_.size(); i++)
-    // {
-    //   // check for cars that are in my lane
-    //   float d = sensor_fusion_data_[i][6];
-    //   if(d< (2+4*target_lane_+2) && d> (2+4*target_lane_-2))
-    //   {
-    //     double vx = sensor_fusion_data_[i][3];
-    //     double vy = sensor_fusion_data_[i][4];
-    //     double check_speed = sqrt(vx*vx+vy*vy);
-    //     double check_car_s = sensor_fusion_data_[i][5];
-    //     // project cars position into the future
-    //     check_car_s+=((double)previous_size*TIME_STEP_SIZE*check_speed);
-    //
-    //     // add very simply check for collision
-    //     if((check_car_s > car_s_) && (check_car_s-car_s_ < SAFETY_DISTANCE))
-    //     {
-    //       // take some action
-    //       too_close = true;
-    //     }
-    //   }
-    // }
-    //
-    // if(too_close)
-    // {
-    //   // slow down by roughly 5 m/s^2 (under max acceleration)
-    //   target_vel_ -= 0.224;
-    // }
-    // else if (target_vel_ < SPEED_LIMIT)
-    // {
-    //   target_vel_ += 0.224;
-    // }
     DetermineOptimalLane();
 
     trajectory_generator_.GenerateEgoTrajectory(
@@ -114,6 +72,7 @@ void VehicleController::ComputeNewTrajectory(
       map_waypoints_y_);
   }
 
+//==============================================================================
 void VehicleController::DetermineOptimalLane()
 {
   // check to see if the car is too close to the car ahead of it,
@@ -137,6 +96,7 @@ void VehicleController::DetermineOptimalLane()
 
   // loop over all cars in traffic
   double current_traffic_pace = SPEED_LIMIT;
+
   double distance_to_next_car_in_lane = 100;
   for (int i = 0; i < sensor_fusion_data_.size(); ++i)
   {
@@ -203,15 +163,22 @@ void VehicleController::DetermineOptimalLane()
       // compute acceleration
       if(current_traffic_pace < target_vel_)
       {
-        double acc = max((current_traffic_pace-target_vel_)*0.44,-9.8);
-        // slow down by roughly 5 m/s^2 (under max acceleration)
-        //target_vel_ -= 0.224;
+        double acc;
+        // if some car pulled infront of us initiate emergency break
+        if(distance_to_next_car_in_lane < EMERGENCY_BREAK_THRESHOLD)
+        {
+          acc = -9.8;
+        }
+        // otherwise break according to the difference in speed to the car in front of us
+        else
+        {
+          acc = max((current_traffic_pace-target_vel_)*0.44,-9.8);
+        }
         target_vel_ += acc*TIME_STEP_SIZE;
-        // break according to the difference in speed to the car in front of us
       }
     }
   }
-  // otherwise if the road ahead is clear, speed up to the speed limit
+  //  if the road ahead is clear, speed up to the speed limit
   else if (target_vel_ < SPEED_LIMIT)
   {
     target_vel_ += 0.424;

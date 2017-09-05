@@ -4,10 +4,13 @@
 //==============================================================================
 #include <vector>
 using namespace std;
+//==============================================================================
+
 
 class EgoTrajectoryGenerator
 {
 public:
+
   EgoTrajectoryGenerator(
     int num_trajectory_points,
     double time_step_size,
@@ -30,8 +33,11 @@ public:
     vector <double> map_waypoints_y);
 
 private:
+
   int num_trajectory_points_;
+
   double time_step_size_;
+
   double trajectory_length_;
 
 };

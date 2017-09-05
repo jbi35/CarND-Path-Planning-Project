@@ -8,7 +8,6 @@ using namespace std;
 
 
 //==============================================================================
-
 EgoTrajectoryGenerator::EgoTrajectoryGenerator(
   int num_trajectory_points,
   double time_step_size,
@@ -19,6 +18,7 @@ EgoTrajectoryGenerator::EgoTrajectoryGenerator(
   trajectory_length_ = trajectory_length;
 }
 
+//==============================================================================
 void EgoTrajectoryGenerator::GenerateEgoTrajectory(
   vector<double> &ego_trajectory_x,
   vector<double> &ego_trajectory_y,
@@ -73,9 +73,17 @@ void EgoTrajectoryGenerator::GenerateEgoTrajectory(
     ptsy.push_back(ref_y);
   }
   // add some points way down the road
-  vector<double> next_wp0 = getXY(car_s+trajectory_length_,(2+4*lane),map_waypoints_s,map_waypoints_x,map_waypoints_y);
-  vector<double> next_wp1 = getXY(car_s+trajectory_length_+30,(2+4*lane),map_waypoints_s,map_waypoints_x,map_waypoints_y);
-  vector<double> next_wp2 = getXY(car_s+trajectory_length_+60,(2+4*lane),map_waypoints_s,map_waypoints_x,map_waypoints_y);
+  vector<double> next_wp0 = getXY(car_s+trajectory_length_,
+                                  (2+4*lane),map_waypoints_s,map_waypoints_x,
+                                  map_waypoints_y);
+
+  vector<double> next_wp1 = getXY(car_s+trajectory_length_+30,
+                                  (2+4*lane),map_waypoints_s,map_waypoints_x,
+                                  map_waypoints_y);
+
+  vector<double> next_wp2 = getXY(car_s+trajectory_length_+60,(2+4*lane),
+                                  map_waypoints_s,map_waypoints_x,
+                                  map_waypoints_y);
 
   ptsx.push_back(next_wp0[0]);
   ptsx.push_back(next_wp1[0]);
@@ -85,7 +93,7 @@ void EgoTrajectoryGenerator::GenerateEgoTrajectory(
   ptsy.push_back(next_wp1[1]);
   ptsy.push_back(next_wp2[1]);
 
-  // transformation to cars local cosy
+  // transformation to cars local coordinate system
   for(int i = 0;i<ptsx.size(); i++)
   {
     double shift_x =  ptsx[i] - ref_x;
@@ -93,7 +101,6 @@ void EgoTrajectoryGenerator::GenerateEgoTrajectory(
 
     ptsx[i] = (shift_x * cos(0-ref_yaw)-shift_y* sin(0-ref_yaw));
     ptsy[i] = (shift_x * sin(0-ref_yaw)+shift_y* cos(0-ref_yaw));
-
   }
 
   // create spline
@@ -113,12 +120,11 @@ void EgoTrajectoryGenerator::GenerateEgoTrajectory(
   double target_x = trajectory_length_;
   double target_y = s(target_x);
   double target_dist = sqrt((target_x*target_x)+(target_y*target_y));
-
   double x_add_on = 0;
 
+  // fill up the remainer of trajectory by sampling the interpolating spline
   for(int i = 1; i<=num_trajectory_points_-previous_path_x.size();i++)
   {
-
     double N = (target_dist/(time_step_size_*target_vel/2.24));
     double x_point = x_add_on + (target_x)/N;
     double y_point = s(x_point);
