@@ -1,18 +1,19 @@
 # Model Documentation
-Self-Driving Car Engineer Nanodegree Program
 
 ## Introduction and Overall Code Structure
 
-The path planner implemented for this project contains basically two classes,
+The path planner implemented for this project contains essentially two classes,
 the VehicleController class and the TrajectoryGenerator class. All general
 purpose utility and helper functions have been implemented/moved into utils.cpp
-to reduced clutter in main.cpp.
+to reduce clutter in main.cpp.
 
-While the TrajectoryGenerator is responsible for the generation of smooth, drivable trajectories
-for the ego vehicle, the VehicleController essentially governs the behavior of the ego vehicle
-and decides whether to change lanes, keep cruising near the speed limit, or slow down because the
-traffic ahead moves at a lower speed. Once the VehicleController has decided what to do, it calls
-the TrajectoryGenerator to generate a suitable trajectory for the desired behavior.
+While the TrajectoryGenerator class is responsible for the generation of smooth,
+drivable trajectories for the ego vehicle, the VehicleController class
+essentially governs the behavior of the ego vehicle and decides whether to
+change lanes, keep cruising near the speed limit, or slow down because the
+traffic ahead moves at a lower speed. Once the vehicle controller has decided
+what to do, it calls the trajectory generator to generate a suitable
+trajectory for the desired behavior.
 
 In the following two sections, I will briefly outline the concepts
 and rational behind the implemented path planner.
@@ -25,9 +26,9 @@ to keep cruising in the current lane with a speed close to the speed limit.
 
 The vehicle controller constantly checks if the road ahead is obstructed by traffic.
 If that is the case, there are three options. One, keep driving in the current lane
-and slow down. Two perform a lane change to the left, or three perform a lane change
+and slow down. Two, perform a lane change to the left, or three perform a lane change
 to the right. The vehicle controller checks whether a lane change to the left or to the right
-would be possible, by veryfing that the ego vehicle would not veer of the road in
+would be possible, by verifying that the ego vehicle would not veer of the road in
 case a lane change is performed. In addition the controller checks whether the ego
 vehicle would collide with, or at least come very close to  
 other cars if a lane change were performed.
